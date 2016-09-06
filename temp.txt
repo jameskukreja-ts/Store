@@ -1,0 +1,48 @@
+ public function calculate($trans)
+    {
+    
+        $sm = $this->findByUserId($trans->user_id)->first();
+        if(!$sm) // If no entry found in UserTiers
+        {
+            $arr = ['amount_spent' => $trans->amount,
+                    'year' => '0',
+                    'effective_discount_rate' => '0.01',
+                    'start_date' => date('Y-m-d'),
+                    'end_date' => Date::now()->modify('+364 days'),
+                    'user_id' => $trans->user_id
+                    ];
+            $svData = $this->newEntity($arr);
+            $this->save($svData);
+            $points = ($trans->amount) * $svData->effective_discount_rate;
+        }else
+        {
+            if($this->newYear($sm->end_date)) // check new year
+            {
+
+            }
+            else
+            {
+                if($sm->year == '0') // Check year is zero or not
+                {
+                $sm->amount_spent= $trans->amount + $sm->amount_spent;
+                $points = $trans->amount * $sm->effective_discount_rate;
+                $this->save($sm);    
+                }
+               $tiers->calTier();
+
+                
+            }
+        }
+        return $points;
+
+        
+    }
+
+    public function newYear($date)
+    {
+        if(Date::now() <= $date)
+        {
+            return false;
+        }
+        return true;
+    }
