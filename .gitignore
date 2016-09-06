@@ -1,10 +1,7 @@
-/vendor/*
-/config/app.php
-/tmp/*
-/logs/*
 /webroot/error_log
 *._.DS_Store
 /config/Migrations/schema-dump-default.lock
+
 
 # CakePHP 3
 
@@ -24,3 +21,12 @@
 
 /logs/*
 !/logs/empty
+
+
+# CakePHP 2
+
+/app/tmp/*
+/app/Config/core.php
+/app/Config/database.php
+/vendors/*
+
