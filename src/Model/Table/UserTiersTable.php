@@ -127,10 +127,15 @@ class UserTiersTable extends Table
         }else
         {
                        // $this->Log('Entry found');
-            if($this->newYear($sm)) // check new year and update year and dates if needed
+            $change = false;
+            $getNewYear = $this->newYear($sm);
+            if($getNewYear[0]) // check new year and update year and dates if needed
             {
+               $sm = $getNewYear[1];
                if($sm->year > 1)
-               $this->checkTierMaintained($sm); 
+               {
+               $sm = $this->checkTierMaintained($sm); 
+                 }
                $sm->amount_spent = 0;
                $change= true; 
             }
@@ -160,9 +165,9 @@ class UserTiersTable extends Table
 
     public function newYear($data) // do this if its a new year
     {
-        $today = new Date('2017-05-05');
-        if($today <= $data->end_date)
-        // if(Date::now() <= $data->end_date)
+        // $today = new Date('2018-10-19');
+        // if($today <= $data->end_date)
+        if(Date::now() <= $data->end_date) // && Date::now() >= $data->start_date)
         {
             return false;
         }
@@ -170,22 +175,24 @@ class UserTiersTable extends Table
         //Update start and end date
         $data->start_date = $data->start_date->modify('+365 days');
         $data->end_date = $data->end_date->modify('+365 days');
-        $this->save($data);
-        return true;
+        return [true, $data];
     }
 
+    //Comaparing the tiers of last two years to determine tier for the new year
     public function checkTierMaintained($data)
     {
 
         $previousYr = $this->findByUserId($data->user_id)->where(['year' => $data->year-2])->last();
         $currentYr = $this->findByUserId($data->user_id)->where(['year' => $data->year-1])->last();
-        if($currentYr->tier_id != $previousYr->tier_id)
+        $currentTier = $this->Tiers->calTier($currentYr->amount_spent);
+        $previousTier =$previousYr->tier_id;
+        if($currentTier[0] != $previousTier[0])
         {
-            $info = $this->Tiers->calTier($currentYr->amount_spent);
-            $data->tier_id = $info[0];
-            $data->effective_discount_rate = $info[1];
-            $this->save($data);
+            $data->tier_id = $currentTier[0];
+            $data->effective_discount_rate = $currentTier[1];
+            
         }
+        return $data;
     }
 
 }

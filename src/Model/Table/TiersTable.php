@@ -77,7 +77,14 @@ class TiersTable extends Table
     //Just Calculate Tier
     public function calTier($amt)
     {
-        $newTier = $this->find()->where(['lowerbound <=' => $amt, 'upperbound >=' => $amt])->first();
+        $newTier = $this->find()
+                        ->select('id', 'multiplier')
+                        ->where(['lowerbound <=' => $amt, 'upperbound >=' => $amt])
+                        ->first();
+        if(!count($newTier)){
+            $newTier = $this->find()->where(['upperbound <=' => $amt])->last();
+        }
+       
         $tier=$newTier->id;
         $dRate=$newTier->multiplier/100;
         return [$tier, $dRate];
@@ -87,16 +94,27 @@ class TiersTable extends Table
     public function givePoints($tier, $amt_spnt, $amt, $points=0)// Give Points based on the Parameters as well as return Tier and Discount Rate
     {
         $currentTier = $this->findById($tier)->first();
-        $ubDiff = ($currentTier->upperbound) - ($currentTier->lowerbound) - 1;
-        if(($amt_spnt + $amt) <= $ubDiff || $tier==4)
+        
+         if($amt_spnt)
+        {
+            $amtInfo= $this->calTier($amt_spnt);
+            $amtTier = $this->findById($amtInfo[0])->first();
+            $amt_spnt -= ($amtTier->lowerbound-1) ;
+            $ubDiff = ($currentTier->upperbound) - (($amtTier->lowerbound)-1);    
+        }else
+        
+        $ubDiff = ($currentTier->upperbound) - (($currentTier->lowerbound)-1);
+        
+        $lastTier = $this->find()->last();
+       
+        if(($amt_spnt + $amt) <= $ubDiff || $tier== $lastTier->id)
         {
             $points = $points + ($amt * ($currentTier->multiplier/100));
+
             return [$points, $currentTier->id, $currentTier->multiplier/100];
 
         }else
         {
-            if($amt_spnt != 0)
-                $amt_spnt -= $currentTier->lowerbound;
             $points = $points + ($ubDiff - $amt_spnt) * ($currentTier->multiplier/100) ;
             $amt = $amt-($ubDiff-$amt_spnt);
             $amt_spnt = 0;
