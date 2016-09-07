@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\I18n\Date;
 use Cake\Event\Event;
+// use Cake\Log\Log;
 
 /**
  * Transactions Controller
@@ -57,8 +58,9 @@ class TransactionsController extends AppController
         if ($this->request->is('post')) {
             $transaction = $this->Transactions->patchEntity($transaction, $this->request->data);
             
-            //$transaction = $this->calculate($transaction);
+            //Using beforeSave in model, An event listner initialised for afterSave
             if ($this->Transactions->save($transaction)) {
+                // $this->log('Transaction Added');
                 $this->Flash->success(__('The transaction has been saved.'));
 
                 return $this->redirect(['action' => 'index']);

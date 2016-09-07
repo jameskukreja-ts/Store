@@ -6,7 +6,7 @@ use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\I18n\Date;
-use Cake\Log\Log;
+use Cake\Event\Event;
 
 /**
  * UserTiers Model
@@ -126,22 +126,23 @@ class UserTiersTable extends Table
             $sm = $this->newEntity($arr);
         }else
         {
-                       // $this->Log('Entry found');
-            $change = false;
+            // $this->Log('Entry found');
+            $yrChange = false;
             $getNewYear = $this->newYear($sm);
             if($getNewYear[0]) // check new year and update year and dates if needed
             {
                $sm = $getNewYear[1];
                if($sm->year > 1)
                {
-               $sm = $this->checkTierMaintained($sm); 
-                 }
+                    $sm = $this->checkTierMaintained($sm); 
+                }
                $sm->amount_spent = 0;
-               $change= true; 
+               $yrChange= true; 
             }
             $tierInfo = $this->Tiers->givePoints($sm->tier_id, $sm->amount_spent, $trans->amount, 0); 
             $sm->amount_spent += $trans->amount;
-            if($tierInfo[1] != $sm->tier_id || $change)// If tier or year has changed create new entity
+            $tierChange = $this->tierChange($tierInfo[1], $sm->tier_id);
+            if($tierChange || $yrChange)// If tier or year has changed create new entity
             {
                $arr = ['amount_spent' => $sm->amount_spent,
                     'year' => $sm->year,
@@ -165,9 +166,9 @@ class UserTiersTable extends Table
 
     public function newYear($data) // do this if its a new year
     {
-        // $today = new Date('2018-10-19');
+        // $today = new Date('2017-10-19');
         // if($today <= $data->end_date)
-        if(Date::now() <= $data->end_date) // && Date::now() >= $data->start_date)
+        if(Date::now() <= $data->end_date && Date::now() >= $data->start_date)
         {
             return false;
         }
@@ -175,7 +176,28 @@ class UserTiersTable extends Table
         //Update start and end date
         $data->start_date = $data->start_date->modify('+365 days');
         $data->end_date = $data->end_date->modify('+365 days');
+        //this event fires if its a new year
+        $event = new Event('Model.UserTier.afterNewYear', $this, array(
+                'data' => $data
+            ));
+            $this->eventManager()->dispatch($event);
         return [true, $data];
+    }
+
+    public function tierChange($current, $previous)
+    {
+
+        if($current != $previous)
+        {   
+            //this event fires if its a new tier
+            $event = new Event('Model.UserTier.afterTierChange', $this, array(
+                    'current' => $current
+            ));
+            $this->eventManager()->dispatch($event);
+            return true;
+        }
+        return false;
+
     }
 
     //Comaparing the tiers of last two years to determine tier for the new year

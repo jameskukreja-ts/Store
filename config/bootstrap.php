@@ -223,3 +223,9 @@ if (Configure::read('debug')) {
 }
 
 Plugin::load('Migrations');
+
+use App\Event\TierYearListener;
+$TierYearListener = new TierYearListener();
+ 
+use Cake\Event\EventManager;
+EventManager::instance()->attach($TierYearListener);
