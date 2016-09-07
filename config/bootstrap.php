@@ -229,3 +229,8 @@ $TierYearListener = new TierYearListener();
  
 use Cake\Event\EventManager;
 EventManager::instance()->attach($TierYearListener);
+
+use App\Event\TranListener;
+$TranListener = new TranListener();
+ 
+EventManager::instance()->attach($TranListener);

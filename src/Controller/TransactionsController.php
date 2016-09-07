@@ -56,11 +56,16 @@ class TransactionsController extends AppController
     {
         $transaction = $this->Transactions->newEntity();
         if ($this->request->is('post')) {
+
             $transaction = $this->Transactions->patchEntity($transaction, $this->request->data);
             
-            //Using beforeSave in model, An event listner initialised for afterSave
+            //Using beforeSave in model to calculate points
             if ($this->Transactions->save($transaction)) {
                 // $this->log('Transaction Added');
+            $event = new Event('Controller.Transaction.afterAdd', $this, array(
+                    'entity' => $transaction
+            ));
+            $this->eventManager()->dispatch($event);
                 $this->Flash->success(__('The transaction has been saved.'));
 
                 return $this->redirect(['action' => 'index']);
