@@ -15,7 +15,7 @@ class TranListener implements EventListenerInterface
 
     public function logEntry($event, $entity)
     {
-         log::write('debug', 'It Worked 3!!!!');
+         log::write('debug', 'New Transaction by Customer ID '.$entity->user_id);
     }
 
 }

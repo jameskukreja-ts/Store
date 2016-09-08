@@ -56,7 +56,7 @@ class TransactionsTable extends Table
         $validator
             ->integer('amount')
             ->requirePresence('amount', 'create')
-            ->notEmpty('amount');
+            ->notEmpty('amount');        
 
         $validator
             ->integer('point')

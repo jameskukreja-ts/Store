@@ -166,7 +166,7 @@ class UserTiersTable extends Table
 
     public function newYear($data) // do this if its a new year
     {
-        // $today = new Date('2017-10-19');
+        // $today = new Date('2018-10-19');
         // if($today <= $data->end_date)
         if(Date::now() <= $data->end_date && Date::now() >= $data->start_date)
         {
